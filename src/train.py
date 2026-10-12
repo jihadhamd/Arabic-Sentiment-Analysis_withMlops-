@@ -1,8 +1,8 @@
-"""Fine-tune AraBERT on the review splits.
+"""Fine-tune AraBERT on the review splits, logging every run to MLflow.
 
-Run from the project root. A quick pipeline check, then the real run:
-    python -m src.train --max-train-samples 2000 --epochs 1
-    python -m src.train --epochs 2
+Run from the project root, with MLFLOW_TRACKING_URI set (see README), or add --no-mlflow:
+    python -m src.train --run-name quickcheck --max-train-samples 2000 --epochs 1
+    python -m src.train --run-name baseline --output-dir models/baseline
 """
 
 import argparse
@@ -35,11 +35,12 @@ from src.config import (
     SEED,
 )
 from src.text import clean_text
+from src.tracking import log_metric, log_text, require_tracking_uri, tracked_run
 
 
 @dataclass
 class TrainConfig:
-    """Every setting of one training run. MLflow will log exactly these."""
+    """Every setting of one training run. MLflow logs exactly these."""
 
     data_dir: Path = PROCESSED_DIR
     output_dir: Path = MODEL_DIR
@@ -128,15 +129,14 @@ def evaluate(model: Any, loader: DataLoader, device: torch.device) -> dict[str, 
     }
 
 
-def print_report(result: dict[str, Any]) -> None:
-    print(
-        classification_report(
-            result["y_true"],
-            result["y_pred"],
-            labels=list(range(len(LABELS))),
-            target_names=list(LABELS),
-            digits=4,
-        )
+def format_report(result: dict[str, Any]) -> str:
+    """The per-class precision / recall / F1 table, as text."""
+    return classification_report(
+        result["y_true"],
+        result["y_pred"],
+        labels=list(range(len(LABELS))),
+        target_names=list(LABELS),
+        digits=4,
     )
 
 
@@ -176,12 +176,14 @@ def train(cfg: TrainConfig) -> dict[str, float]:
 
     best_f1, best_epoch = -1.0, 0
     best_val: dict[str, Any] = {}
+    global_step = 0
     started = time.perf_counter()
 
     for epoch in range(1, cfg.epochs + 1):
         model.train()
         running_loss = 0.0
         for step, batch in enumerate(train_dl, start=1):
+            global_step += 1
             batch = {key: value.to(device) for key, value in batch.items()}
             with torch.autocast(device_type=device.type, dtype=torch.float16, enabled=use_amp):
                 loss = model(**batch).loss
@@ -196,12 +198,15 @@ def train(cfg: TrainConfig) -> dict[str, float]:
             if step % 200 == 0 or step == len(train_dl):
                 avg = running_loss / step
                 print(f"epoch {epoch}/{cfg.epochs}  step {step}/{len(train_dl)}  loss {avg:.4f}")
+                log_metric("train_loss", avg, step=global_step)
 
         val = evaluate(model, val_dl, device)
         print(
             f"epoch {epoch}: validation accuracy {val['accuracy']:.4f}, "
             f"macro-F1 {val['f1_macro']:.4f}"
         )
+        log_metric("val_accuracy", val["accuracy"], step=epoch)
+        log_metric("val_f1_macro", val["f1_macro"], step=epoch)
         if val["f1_macro"] > best_f1:  # keep only the best epoch
             best_f1, best_epoch, best_val = val["f1_macro"], epoch, val
             cfg.output_dir.mkdir(parents=True, exist_ok=True)
@@ -212,7 +217,9 @@ def train(cfg: TrainConfig) -> dict[str, float]:
     peak_vram_mb = torch.cuda.max_memory_allocated() / 1e6 if use_amp else 0.0
     print(f"Best epoch: {best_epoch}. Training took {train_seconds / 60:.1f} minutes.")
     print(f"Peak GPU memory: {peak_vram_mb:.0f} MB")
-    print_report(best_val)
+    report = format_report(best_val)
+    print(report)
+    log_text(report, "val_report.txt")
 
     metrics: dict[str, float] = {
         "best_epoch": float(best_epoch),
@@ -233,7 +240,9 @@ def train(cfg: TrainConfig) -> dict[str, float]:
         )
         test = evaluate(best_model, test_dl, device)
         print(f"TEST accuracy {test['accuracy']:.4f}, macro-F1 {test['f1_macro']:.4f}")
-        print_report(test)
+        test_report = format_report(test)
+        print(test_report)
+        log_text(test_report, "test_report.txt")
         metrics["test_accuracy"] = test["accuracy"]
         metrics["test_f1_macro"] = test["f1_macro"]
 
@@ -242,9 +251,36 @@ def train(cfg: TrainConfig) -> dict[str, float]:
     return metrics
 
 
-def parse_args() -> TrainConfig:
+def train_tracked(cfg: TrainConfig, run_name: str) -> dict[str, float]:
+    """Train inside an MLflow run, then log the headline numbers the checklist asks for."""
+    params = {
+        "model_name": cfg.base_model,
+        "lr": cfg.lr,
+        "batch_size": cfg.batch_size,
+        "epochs": cfg.epochs,
+        "max_length": cfg.max_length,
+        "max_train_samples": cfg.max_train_samples or "all",
+        "warmup_ratio": cfg.warmup_ratio,
+        "weight_decay": cfg.weight_decay,
+        "seed": cfg.seed,
+    }
+    with tracked_run(run_name, params):
+        metrics = train(cfg)
+        log_metric("accuracy", metrics["val_accuracy"])
+        log_metric("f1_macro", metrics["val_f1_macro"])
+        for name in ("best_epoch", "train_seconds", "peak_vram_mb"):
+            log_metric(name, metrics[name])
+        for name in ("test_accuracy", "test_f1_macro"):
+            if name in metrics:
+                log_metric(name, metrics[name])
+    return metrics
+
+
+def parse_args() -> tuple[TrainConfig, str, bool]:
     defaults = TrainConfig()
     parser = argparse.ArgumentParser(description="Fine-tune AraBERT for Arabic review sentiment.")
+    parser.add_argument("--run-name", default="run", help="the name shown in the MLflow table")
+    parser.add_argument("--no-mlflow", action="store_true", help="train without logging to MLflow")
     parser.add_argument("--data-dir", type=Path, default=defaults.data_dir)
     parser.add_argument("--output-dir", type=Path, default=defaults.output_dir)
     parser.add_argument("--base-model", default=defaults.base_model)
@@ -257,8 +293,16 @@ def parse_args() -> TrainConfig:
     parser.add_argument(
         "--evaluate-test", action="store_true", help="also score the held-out test split"
     )
-    return TrainConfig(**vars(parser.parse_args()))
+    args = vars(parser.parse_args())
+    run_name = args.pop("run_name")
+    no_mlflow = args.pop("no_mlflow")
+    return TrainConfig(**args), run_name, no_mlflow
 
 
 if __name__ == "__main__":
-    train(parse_args())
+    config, name, skip_tracking = parse_args()
+    if skip_tracking:
+        train(config)
+    else:
+        print(f"Logging to MLflow at {require_tracking_uri()}")
+        train_tracked(config, name)

@@ -2,8 +2,8 @@ from typing import get_args
 
 import pytest
 from fastapi.testclient import TestClient
-from src.api import create_app
 
+from src.api import create_app
 from src.config import LABELS
 from src.schemas import Label, Prediction
 

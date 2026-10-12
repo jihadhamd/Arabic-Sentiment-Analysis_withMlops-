@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-train = ["pandas", "scikit-learn"]
+train = ["pandas", "scikit-learn", "mlflow"]
 eda = ["matplotlib", "jupyter", "ipykernel"]
 data = ["kaggle"]
 dev = ["pytest", "httpx", "black", "ruff", "pre-commit"]

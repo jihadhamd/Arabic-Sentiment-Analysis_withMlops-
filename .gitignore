@@ -12,6 +12,8 @@ models/
 
 # Experiment tracking output
 mlruns/
+mlflow.db
+mlartifacts/
 
 # Secrets must never reach GitHub
 .env
