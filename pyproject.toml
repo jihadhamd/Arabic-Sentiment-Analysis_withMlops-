@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arabic-sentiment-classification"
+version = "0.1.0"
+description = "Arabic sentiment classification project"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.2",
+    "transformers>=4.40",
+    "numpy",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.6",
+    "arabert",
+]
+
+[project.optional-dependencies]
+train = ["pandas", "scikit-learn"]
+eda = ["matplotlib", "jupyter", "ipykernel"]
+data = ["kaggle"]
+dev = ["pytest", "httpx", "black", "ruff", "pre-commit"]
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+src = ["."]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
