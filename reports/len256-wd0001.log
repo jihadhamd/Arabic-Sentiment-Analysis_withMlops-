@@ -1,0 +1,103 @@
+Logging to MLflow at https://dagshub.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.mlflow
+Device: cuda (NVIDIA GeForce RTX 4050 Laptop GPU)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 2423.69it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: aubmindlab/bert-base-arabertv02
+Key                                        | Status     |
+-------------------------------------------+------------+-
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |
+cls.predictions.bias                       | UNEXPECTED |
+cls.predictions.transform.dense.bias       | UNEXPECTED |
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |
+cls.seq_relationship.weight                | UNEXPECTED |
+cls.seq_relationship.bias                  | UNEXPECTED |
+cls.predictions.transform.dense.weight     | UNEXPECTED |
+classifier.bias                            | MISSING    |
+classifier.weight                          | MISSING    |
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+/home/Jihad_Hamdy/projects/arabic-sentiment/src/train.py:202: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  scheduler.step()
+Cleaning the text (this takes a minute)...
+Training on 79999 reviews, validating on 10000
+epoch 1/2  step 200/5000  loss 1.0854
+epoch 1/2  step 400/5000  loss 0.9307
+epoch 1/2  step 600/5000  loss 0.8555
+epoch 1/2  step 800/5000  loss 0.8155
+epoch 1/2  step 1000/5000  loss 0.7957
+epoch 1/2  step 1200/5000  loss 0.7804
+epoch 1/2  step 1400/5000  loss 0.7689
+epoch 1/2  step 1600/5000  loss 0.7546
+epoch 1/2  step 1800/5000  loss 0.7440
+epoch 1/2  step 2000/5000  loss 0.7345
+epoch 1/2  step 2200/5000  loss 0.7303
+epoch 1/2  step 2400/5000  loss 0.7254
+epoch 1/2  step 2600/5000  loss 0.7187
+epoch 1/2  step 2800/5000  loss 0.7133
+epoch 1/2  step 3000/5000  loss 0.7088
+epoch 1/2  step 3200/5000  loss 0.7056
+epoch 1/2  step 3400/5000  loss 0.7020
+epoch 1/2  step 3600/5000  loss 0.6987
+epoch 1/2  step 3800/5000  loss 0.6965
+epoch 1/2  step 4000/5000  loss 0.6933
+epoch 1/2  step 4200/5000  loss 0.6900
+epoch 1/2  step 4400/5000  loss 0.6872
+epoch 1/2  step 4600/5000  loss 0.6844
+epoch 1/2  step 4800/5000  loss 0.6817
+epoch 1/2  step 5000/5000  loss 0.6789
+epoch 1: validation accuracy 0.7419, macro-F1 0.7351
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.39it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.39it/s]
+epoch 2/2  step 200/5000  loss 0.5694
+epoch 2/2  step 400/5000  loss 0.5482
+epoch 2/2  step 600/5000  loss 0.5392
+epoch 2/2  step 800/5000  loss 0.5404
+epoch 2/2  step 1000/5000  loss 0.5420
+epoch 2/2  step 1200/5000  loss 0.5468
+epoch 2/2  step 1400/5000  loss 0.5451
+epoch 2/2  step 1600/5000  loss 0.5477
+epoch 2/2  step 1800/5000  loss 0.5452
+epoch 2/2  step 2000/5000  loss 0.5451
+epoch 2/2  step 2200/5000  loss 0.5419
+epoch 2/2  step 2400/5000  loss 0.5403
+epoch 2/2  step 2600/5000  loss 0.5404
+epoch 2/2  step 2800/5000  loss 0.5374
+epoch 2/2  step 3000/5000  loss 0.5372
+epoch 2/2  step 3200/5000  loss 0.5372
+epoch 2/2  step 3400/5000  loss 0.5362
+epoch 2/2  step 3600/5000  loss 0.5356
+epoch 2/2  step 3800/5000  loss 0.5341
+epoch 2/2  step 4000/5000  loss 0.5325
+epoch 2/2  step 4200/5000  loss 0.5317
+epoch 2/2  step 4400/5000  loss 0.5317
+epoch 2/2  step 4600/5000  loss 0.5318
+epoch 2/2  step 4800/5000  loss 0.5319
+epoch 2/2  step 5000/5000  loss 0.5309
+epoch 2: validation accuracy 0.7568, macro-F1 0.7573
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.53it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.53it/s]
+Best epoch: 2. Training took 35.7 minutes.
+Peak GPU memory: 4115 MB
+              precision    recall  f1-score   support
+
+    negative     0.8257    0.7858    0.8052      3333
+       mixed     0.6633    0.6757    0.6694      3333
+    positive     0.7856    0.8089    0.7971      3334
+
+    accuracy                         0.7568     10000
+   macro avg     0.7582    0.7568    0.7573     10000
+weighted avg     0.7582    0.7568    0.7573     10000
+
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 4099.35it/s]
+2026/10/15 12:28:57 INFO mlflow.utils.uv_utils: Detected uv project: found uv.lock and pyproject.toml in /home/Jihad_Hamdy/projects/arabic-sentiment
+Writing model shards:   0%|          | 0/2 [00:00<?, ?it/s]Writing model shards:  50%|█████     | 1/2 [00:00<00:00,  1.87it/s]Writing model shards: 100%|██████████| 2/2 [00:00<00:00,  3.53it/s]
+2026/10/15 12:29:01 WARNING mlflow.transformers: The model card could not be retrieved from the hub due to 401 Client Error. (Request ID: Root=1-6ad09cde-1724a11829dcda90578d99c7;ec38521e-8db7-4e50-b11f-39c99bc62ec4)
+
+Repository Not Found for url: https://huggingface.co/models/len256-wd0001/resolve/main/README.md.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated and your token has the required permissions.
+For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+Invalid username or password.
+2026/10/15 12:29:01 WARNING mlflow.transformers: Unable to find license information for this model. Please verify permissible usage for the model you are storing prior to use.
+2026/10/15 12:29:02 WARNING mlflow.utils.environment: Failed to resolve installed pip version. ``pip`` will be added to conda.yaml environment spec without a version specifier.
+🏃 View run len256-wd0001 at: https://dagshub.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.mlflow/#/experiments/1/runs/73d5ef6fe8dc428e86d04e468172ec75
+🧪 View experiment at: https://dagshub.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.mlflow/#/experiments/1

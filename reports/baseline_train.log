@@ -1,0 +1,65 @@
+Logging to MLflow at https://dagshub.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.mlflow
+Device: cuda (NVIDIA GeForce RTX 4050 Laptop GPU)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 2123.99it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: aubmindlab/bert-base-arabertv02
+Key                                        | Status     |
+-------------------------------------------+------------+-
+cls.seq_relationship.bias                  | UNEXPECTED |
+cls.seq_relationship.weight                | UNEXPECTED |
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |
+cls.predictions.bias                       | UNEXPECTED |
+cls.predictions.transform.dense.bias       | UNEXPECTED |
+cls.predictions.transform.dense.weight     | UNEXPECTED |
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |
+classifier.bias                            | MISSING    |
+classifier.weight                          | MISSING    |
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+Cleaning the text (this takes a minute)...
+Training on 79999 reviews, validating on 10000
+epoch 1/2  step 200/2500  loss 1.0702
+epoch 1/2  step 400/2500  loss 0.9144
+epoch 1/2  step 600/2500  loss 0.8332
+epoch 1/2  step 800/2500  loss 0.7871
+epoch 1/2  step 1000/2500  loss 0.7544
+epoch 1/2  step 1200/2500  loss 0.7352
+epoch 1/2  step 1400/2500  loss 0.7191
+epoch 1/2  step 1600/2500  loss 0.7070
+epoch 1/2  step 1800/2500  loss 0.6971
+epoch 1/2  step 2000/2500  loss 0.6894
+epoch 1/2  step 2200/2500  loss 0.6813
+epoch 1/2  step 2400/2500  loss 0.6750
+epoch 1/2  step 2500/2500  loss 0.6716
+epoch 1: validation accuracy 0.7408, macro-F1 0.7378
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.10it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.10it/s]
+epoch 2/2  step 200/2500  loss 0.5409
+epoch 2/2  step 400/2500  loss 0.5323
+epoch 2/2  step 600/2500  loss 0.5378
+epoch 2/2  step 800/2500  loss 0.5395
+epoch 2/2  step 1000/2500  loss 0.5366
+epoch 2/2  step 1200/2500  loss 0.5322
+epoch 2/2  step 1400/2500  loss 0.5303
+epoch 2/2  step 1600/2500  loss 0.5314
+epoch 2/2  step 1800/2500  loss 0.5313
+epoch 2/2  step 2000/2500  loss 0.5298
+epoch 2/2  step 2200/2500  loss 0.5294
+epoch 2/2  step 2400/2500  loss 0.5303
+epoch 2/2  step 2500/2500  loss 0.5297
+epoch 2: validation accuracy 0.7464, macro-F1 0.7462
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.65it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.64it/s]
+Best epoch: 2. Training took 20.7 minutes.
+Peak GPU memory: 4106 MB
+              precision    recall  f1-score   support
+
+    negative     0.8105    0.7843    0.7972      3333
+       mixed     0.6546    0.6472    0.6509      3333
+    positive     0.7739    0.8077    0.7904      3334
+
+    accuracy                         0.7464     10000
+   macro avg     0.7463    0.7464    0.7462     10000
+weighted avg     0.7463    0.7464    0.7462     10000
+
+🏃 View run baseline3 at: https://dagshub.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.mlflow/#/experiments/1/runs/92982e4b75c1414ca2f27589a12d04ab
+🧪 View experiment at: https://dagshub.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.mlflow/#/experiments/1

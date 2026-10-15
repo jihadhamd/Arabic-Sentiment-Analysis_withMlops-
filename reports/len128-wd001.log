@@ -1,0 +1,101 @@
+Logging to MLflow at https://dagshub.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.mlflow
+Device: cuda (NVIDIA GeForce RTX 4050 Laptop GPU)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 2212.20it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: aubmindlab/bert-base-arabertv02
+Key                                        | Status     |
+-------------------------------------------+------------+-
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |
+cls.seq_relationship.bias                  | UNEXPECTED |
+cls.predictions.transform.dense.weight     | UNEXPECTED |
+cls.predictions.bias                       | UNEXPECTED |
+cls.seq_relationship.weight                | UNEXPECTED |
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |
+cls.predictions.transform.dense.bias       | UNEXPECTED |
+classifier.bias                            | MISSING    |
+classifier.weight                          | MISSING    |
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+Cleaning the text (this takes a minute)...
+Training on 79999 reviews, validating on 10000
+epoch 1/2  step 200/5000  loss 1.0823
+epoch 1/2  step 400/5000  loss 0.9422
+epoch 1/2  step 600/5000  loss 0.8674
+epoch 1/2  step 800/5000  loss 0.8266
+epoch 1/2  step 1000/5000  loss 0.8053
+epoch 1/2  step 1200/5000  loss 0.7867
+epoch 1/2  step 1400/5000  loss 0.7723
+epoch 1/2  step 1600/5000  loss 0.7601
+epoch 1/2  step 1800/5000  loss 0.7499
+epoch 1/2  step 2000/5000  loss 0.7406
+epoch 1/2  step 2200/5000  loss 0.7343
+epoch 1/2  step 2400/5000  loss 0.7283
+epoch 1/2  step 2600/5000  loss 0.7221
+epoch 1/2  step 2800/5000  loss 0.7160
+epoch 1/2  step 3000/5000  loss 0.7115
+epoch 1/2  step 3200/5000  loss 0.7077
+epoch 1/2  step 3400/5000  loss 0.7034
+epoch 1/2  step 3600/5000  loss 0.7001
+epoch 1/2  step 3800/5000  loss 0.6979
+epoch 1/2  step 4000/5000  loss 0.6945
+epoch 1/2  step 4200/5000  loss 0.6911
+epoch 1/2  step 4400/5000  loss 0.6876
+epoch 1/2  step 4600/5000  loss 0.6851
+epoch 1/2  step 4800/5000  loss 0.6822
+epoch 1/2  step 5000/5000  loss 0.6793
+epoch 1: validation accuracy 0.7368, macro-F1 0.7306
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.89s/it]Writing model shards: 100%|██████████| 1/1 [00:01<00:00,  1.90s/it]
+epoch 2/2  step 200/5000  loss 0.5587
+epoch 2/2  step 400/5000  loss 0.5422
+epoch 2/2  step 600/5000  loss 0.5307
+epoch 2/2  step 800/5000  loss 0.5314
+epoch 2/2  step 1000/5000  loss 0.5321
+epoch 2/2  step 1200/5000  loss 0.5366
+epoch 2/2  step 1400/5000  loss 0.5344
+epoch 2/2  step 1600/5000  loss 0.5359
+epoch 2/2  step 1800/5000  loss 0.5337
+epoch 2/2  step 2000/5000  loss 0.5338
+epoch 2/2  step 2200/5000  loss 0.5306
+epoch 2/2  step 2400/5000  loss 0.5289
+epoch 2/2  step 2600/5000  loss 0.5293
+epoch 2/2  step 2800/5000  loss 0.5260
+epoch 2/2  step 3000/5000  loss 0.5263
+epoch 2/2  step 3200/5000  loss 0.5267
+epoch 2/2  step 3400/5000  loss 0.5260
+epoch 2/2  step 3600/5000  loss 0.5259
+epoch 2/2  step 3800/5000  loss 0.5245
+epoch 2/2  step 4000/5000  loss 0.5236
+epoch 2/2  step 4200/5000  loss 0.5230
+epoch 2/2  step 4400/5000  loss 0.5227
+epoch 2/2  step 4600/5000  loss 0.5228
+epoch 2/2  step 4800/5000  loss 0.5220
+epoch 2/2  step 5000/5000  loss 0.5206
+epoch 2: validation accuracy 0.7497, macro-F1 0.7490
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.04it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.04it/s]
+Best epoch: 2. Training took 25.0 minutes.
+Peak GPU memory: 3292 MB
+              precision    recall  f1-score   support
+
+    negative     0.8017    0.8017    0.8017      3333
+       mixed     0.6636    0.6439    0.6536      3333
+    positive     0.7804    0.8035    0.7918      3334
+
+    accuracy                         0.7497     10000
+   macro avg     0.7485    0.7497    0.7490     10000
+weighted avg     0.7485    0.7497    0.7490     10000
+
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 4072.36it/s]
+2026/10/15 10:47:25 INFO mlflow.utils.uv_utils: Detected uv project: found uv.lock and pyproject.toml in /home/Jihad_Hamdy/projects/arabic-sentiment
+Writing model shards:   0%|          | 0/2 [00:00<?, ?it/s]Writing model shards:  50%|█████     | 1/2 [00:00<00:00,  1.49it/s]Writing model shards: 100%|██████████| 2/2 [00:00<00:00,  2.86it/s]
+2026/10/15 10:47:30 WARNING mlflow.transformers: The model card could not be retrieved from the hub due to 401 Client Error. (Request ID: Root=1-6ad08514-5c915c8971e2d69445dc765a;8737ae0c-8b50-4d25-82a9-317903b95028)
+
+Repository Not Found for url: https://huggingface.co/models/len128-wd001/resolve/main/README.md.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated and your token has the required permissions.
+For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+Invalid username or password.
+2026/10/15 10:47:30 WARNING mlflow.transformers: Unable to find license information for this model. Please verify permissible usage for the model you are storing prior to use.
+2026/10/15 10:47:31 WARNING mlflow.utils.environment: Failed to resolve installed pip version. ``pip`` will be added to conda.yaml environment spec without a version specifier.
+🏃 View run len128-wd001 at: https://dagshub.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.mlflow/#/experiments/1/runs/911251334ca34df880c4c9d34e1f3b97
+🧪 View experiment at: https://dagshub.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.mlflow/#/experiments/1
