@@ -13,6 +13,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+import mlflow
 import numpy as np
 import pandas as pd
 import torch
@@ -37,7 +38,6 @@ from src.config import (
 from src.text import clean_text
 from src.tracking import (
     log_metric,
-    log_model_artifacts,
     log_text,
     require_tracking_uri,
     tracked_run,
@@ -258,7 +258,7 @@ def train(cfg: TrainConfig) -> dict[str, float]:
 
 
 def train_tracked(cfg: TrainConfig, run_name: str) -> dict[str, float]:
-    """Train inside an MLflow run, then log the headline numbers the checklist asks for."""
+    """Train, log a Transformers model, and record experiment metrics."""
     params = {
         "model_name": cfg.base_model,
         "lr": cfg.lr,
@@ -270,16 +270,37 @@ def train_tracked(cfg: TrainConfig, run_name: str) -> dict[str, float]:
         "weight_decay": cfg.weight_decay,
         "seed": cfg.seed,
     }
+
     with tracked_run(run_name, params):
         metrics = train(cfg)
-        log_model_artifacts(str(cfg.output_dir))
+
+        # Reload the BEST saved epoch, not the final in-memory epoch.
+        saved_model = AutoModelForSequenceClassification.from_pretrained(cfg.output_dir)
+        saved_tokenizer = AutoTokenizer.from_pretrained(cfg.output_dir)
+
+        # Log a proper MLflow Transformers model.
+        model_info = mlflow.transformers.log_model(
+            transformers_model={
+                "model": saved_model,
+                "tokenizer": saved_tokenizer,
+            },
+            name="model",
+            task="text-classification",
+        )
+
+        # Keep a reference to the logged model for later registration.
+        mlflow.set_tag("logged_model_uri", model_info.model_uri)
+
         log_metric("accuracy", metrics["val_accuracy"])
         log_metric("f1_macro", metrics["val_f1_macro"])
+
         for name in ("best_epoch", "train_seconds", "peak_vram_mb"):
             log_metric(name, metrics[name])
+
         for name in ("test_accuracy", "test_f1_macro"):
             if name in metrics:
                 log_metric(name, metrics[name])
+
     return metrics
 
 
