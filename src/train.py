@@ -274,23 +274,8 @@ def train_tracked(cfg: TrainConfig, run_name: str) -> dict[str, float]:
     with tracked_run(run_name, params):
         metrics = train(cfg)
 
-        # Reload the BEST saved epoch, not the final in-memory epoch.
-        saved_model = AutoModelForSequenceClassification.from_pretrained(cfg.output_dir)
-        saved_tokenizer = AutoTokenizer.from_pretrained(cfg.output_dir)
-
-        # Log a proper MLflow Transformers model.
-        model_info = mlflow.transformers.log_model(
-            transformers_model={
-                "model": saved_model,
-                "tokenizer": saved_tokenizer,
-            },
-            name="model",
-            task="text-classification",
-        )
-
-        # Keep a reference to the logged model for later registration.
-        mlflow.set_tag("logged_model_uri", model_info.model_uri)
-
+        # Log metrics before model packaging, so they are recorded even
+        # if MLflow fails to package the model.
         log_metric("accuracy", metrics["val_accuracy"])
         log_metric("f1_macro", metrics["val_f1_macro"])
 
@@ -300,6 +285,31 @@ def train_tracked(cfg: TrainConfig, run_name: str) -> dict[str, float]:
         for name in ("test_accuracy", "test_f1_macro"):
             if name in metrics:
                 log_metric(name, metrics[name])
+
+        # Reload the BEST saved epoch, not the final in-memory epoch.
+        saved_model = AutoModelForSequenceClassification.from_pretrained(cfg.output_dir)
+        saved_tokenizer = AutoTokenizer.from_pretrained(cfg.output_dir)
+
+        # Log the Transformers model with explicit dependencies.
+        model_info = mlflow.transformers.log_model(
+            transformers_model={
+                "model": saved_model,
+                "tokenizer": saved_tokenizer,
+            },
+            name="model",
+            task="text-classification",
+            pip_requirements=[
+                "mlflow==3.17.1",
+                "torch==2.14.1",
+                "transformers==5.19.0",
+                "safetensors",
+                "huggingface-hub",
+                "tokenizers",
+            ],
+        )
+
+        # Keep a reference to the logged model for later registration.
+        mlflow.set_tag("logged_model_uri", model_info.model_uri)
 
     return metrics
 
