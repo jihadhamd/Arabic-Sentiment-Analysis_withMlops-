@@ -315,6 +315,11 @@ def parse_args() -> tuple[TrainConfig, str, bool]:
     parser.add_argument("--epochs", type=int, default=defaults.epochs)
     parser.add_argument("--batch-size", type=int, default=defaults.batch_size)
     parser.add_argument("--lr", type=float, default=defaults.lr)
+    parser.add_argument(
+        "--weight-decay",
+        type=float,
+        default=defaults.weight_decay,
+    )
     parser.add_argument("--max-length", type=int, default=defaults.max_length)
     parser.add_argument("--max-train-samples", type=int, default=None)
     parser.add_argument("--seed", type=int, default=defaults.seed)
