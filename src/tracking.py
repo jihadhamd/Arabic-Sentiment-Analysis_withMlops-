@@ -60,3 +60,16 @@ def log_text(text: str, artifact_file: str) -> None:
     """Save a piece of text as a file attached to the current run (if there is one)."""
     if mlflow.active_run() is not None:
         mlflow.log_text(text, artifact_file)
+
+
+def log_model_artifacts(model_dir: str) -> None:
+    """Upload a saved model checkpoint directory to the active MLflow run."""
+    from pathlib import Path
+
+    path = Path(model_dir)
+
+    if not path.is_dir():
+        raise FileNotFoundError(f"Model directory not found: {path}")
+
+    if mlflow.active_run() is not None:
+        mlflow.log_artifacts(str(path), artifact_path="model")

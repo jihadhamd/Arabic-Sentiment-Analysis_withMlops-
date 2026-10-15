@@ -35,7 +35,13 @@ from src.config import (
     SEED,
 )
 from src.text import clean_text
-from src.tracking import log_metric, log_text, require_tracking_uri, tracked_run
+from src.tracking import (
+    log_metric,
+    log_model_artifacts,
+    log_text,
+    require_tracking_uri,
+    tracked_run,
+)
 
 
 @dataclass
@@ -266,6 +272,7 @@ def train_tracked(cfg: TrainConfig, run_name: str) -> dict[str, float]:
     }
     with tracked_run(run_name, params):
         metrics = train(cfg)
+        log_model_artifacts(str(cfg.output_dir))
         log_metric("accuracy", metrics["val_accuracy"])
         log_metric("f1_macro", metrics["val_f1_macro"])
         for name in ("best_epoch", "train_seconds", "peak_vram_mb"):
