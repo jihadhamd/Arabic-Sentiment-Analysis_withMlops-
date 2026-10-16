@@ -23,6 +23,7 @@ stages:
       --seed 42
       --data-dir data/processed
       --output-dir models/dvc-training
+
     deps:
       - src/train.py
       - src/config.py

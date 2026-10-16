@@ -1,0 +1,103 @@
+WARNING: Process '/home/Jihad_Hamdy/projects/arabic-sentiment/.venv/bin/dvc repro' with (Pid 8538), in RWLock-file 'data/processed/train.csv' had been killed. Auto removed it from the lock file.
+Stage 'prepare' didn't change, skipping
+WARNING: Process '/home/Jihad_Hamdy/projects/arabic-sentiment/.venv/bin/dvc repro' with (Pid 8538), in RWLock-file 'models/dvc-training' had been killed. Auto removed it from the lock file.
+Running stage 'train':
+> uv run python -m src.train --run-name dvc-training --base-model aubmindlab/bert-base-arabertv02 --lr 5e-5 --batch-size 16 --max-length 256 --weight-decay 0.01 --epochs 2 --seed 42 --data-dir data/processed --output-dir models/dvc-training --output-dir models/dvc-training --no-mlflow
+Device: cuda (NVIDIA GeForce RTX 4050 Laptop GPU)
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 2356.02it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: aubmindlab/bert-base-arabertv02
+Key                                        | Status     |
+-------------------------------------------+------------+-
+cls.predictions.transform.dense.bias       | UNEXPECTED |
+cls.seq_relationship.weight                | UNEXPECTED |
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |
+cls.seq_relationship.bias                  | UNEXPECTED |
+cls.predictions.bias                       | UNEXPECTED |
+cls.predictions.transform.dense.weight     | UNEXPECTED |
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |
+classifier.weight                          | MISSING    |
+classifier.bias                            | MISSING    |
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+/home/Jihad_Hamdy/projects/arabic-sentiment/src/train.py:202: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  scheduler.step()
+Cleaning the text (this takes a minute)...
+Training on 79999 reviews, validating on 10000
+epoch 1/2  step 200/5000  loss 1.0854
+epoch 1/2  step 400/5000  loss 0.9306
+epoch 1/2  step 600/5000  loss 0.8548
+epoch 1/2  step 800/5000  loss 0.8136
+epoch 1/2  step 1000/5000  loss 0.7912
+epoch 1/2  step 1200/5000  loss 0.7725
+epoch 1/2  step 1400/5000  loss 0.7586
+epoch 1/2  step 1600/5000  loss 0.7460
+epoch 1/2  step 1800/5000  loss 0.7376
+epoch 1/2  step 2000/5000  loss 0.7278
+epoch 1/2  step 2200/5000  loss 0.7223
+epoch 1/2  step 2400/5000  loss 0.7167
+epoch 1/2  step 2600/5000  loss 0.7109
+epoch 1/2  step 2800/5000  loss 0.7050
+epoch 1/2  step 3000/5000  loss 0.7005
+epoch 1/2  step 3200/5000  loss 0.6970
+epoch 1/2  step 3400/5000  loss 0.6929
+epoch 1/2  step 3600/5000  loss 0.6893
+epoch 1/2  step 3800/5000  loss 0.6871
+epoch 1/2  step 4000/5000  loss 0.6838
+epoch 1/2  step 4200/5000  loss 0.6811
+epoch 1/2  step 4400/5000  loss 0.6785
+epoch 1/2  step 4600/5000  loss 0.6768
+epoch 1/2  step 4800/5000  loss 0.6740
+epoch 1/2  step 5000/5000  loss 0.6713
+epoch 1: validation accuracy 0.7411, macro-F1 0.7355
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.20it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.20it/s]
+epoch 2/2  step 200/5000  loss 0.5490
+epoch 2/2  step 400/5000  loss 0.5321
+epoch 2/2  step 600/5000  loss 0.5220
+epoch 2/2  step 800/5000  loss 0.5249
+epoch 2/2  step 1000/5000  loss 0.5272
+epoch 2/2  step 1200/5000  loss 0.5304
+epoch 2/2  step 1400/5000  loss 0.5281
+epoch 2/2  step 1600/5000  loss 0.5306
+epoch 2/2  step 1800/5000  loss 0.5284
+epoch 2/2  step 2000/5000  loss 0.5281
+epoch 2/2  step 2200/5000  loss 0.5243
+epoch 2/2  step 2400/5000  loss 0.5225
+epoch 2/2  step 2600/5000  loss 0.5224
+epoch 2/2  step 2800/5000  loss 0.5192
+epoch 2/2  step 3000/5000  loss 0.5188
+epoch 2/2  step 3200/5000  loss 0.5188
+epoch 2/2  step 3400/5000  loss 0.5184
+epoch 2/2  step 3600/5000  loss 0.5177
+epoch 2/2  step 3800/5000  loss 0.5161
+epoch 2/2  step 4000/5000  loss 0.5149
+epoch 2/2  step 4200/5000  loss 0.5140
+epoch 2/2  step 4400/5000  loss 0.5140
+epoch 2/2  step 4600/5000  loss 0.5141
+epoch 2/2  step 4800/5000  loss 0.5140
+epoch 2/2  step 5000/5000  loss 0.5130
+epoch 2: validation accuracy 0.7556, macro-F1 0.7553
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.06it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.06it/s]
+Best epoch: 2. Training took 35.3 minutes.
+Peak GPU memory: 4115 MB
+              precision    recall  f1-score   support
+
+    negative     0.8161    0.7978    0.8069      3333
+       mixed     0.6684    0.6586    0.6634      3333
+    positive     0.7814    0.8104    0.7956      3334
+
+    accuracy                         0.7556     10000
+   macro avg     0.7553    0.7556    0.7553     10000
+weighted avg     0.7553    0.7556    0.7553     10000
+
+Updating lock file 'dvc.lock'
+
+To track the changes with git, run:
+
+	git add dvc.lock
+
+To enable auto staging, run:
+
+	dvc config core.autostage true
+Use `dvc push` to send your updates to remote storage.

@@ -25,7 +25,8 @@ stages:
     cmd: uv run python -m src.train --run-name dvc-training --base-model
       aubmindlab/bert-base-arabertv02 --lr 5e-5 --batch-size 16 --max-length 256
       --weight-decay 0.01 --epochs 2 --seed 42 --data-dir data/processed
-      --output-dir models/dvc-training
+      --output-dir models/dvc-training --output-dir models/dvc-training
+      --no-mlflow
     deps:
     - path: data/processed/train.csv
       hash: md5
@@ -49,11 +50,11 @@ stages:
       size: 2670
     - path: src/train.py
       hash: md5
-      md5: 00da6687d6cd6eb1a83a0c4585a75f86
-      size: 13120
+      md5: babe24b770ab6ecf431194c45735db51
+      size: 13119
     outs:
     - path: models/dvc-training
       hash: md5
-      md5: 994b091c140fbdb3f093518d04220e38.dir
-      size: 542585190
+      md5: b171aa055ca062698e2a685fd3f9c3e4.dir
+      size: 542585187
       nfiles: 5
