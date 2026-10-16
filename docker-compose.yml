@@ -5,7 +5,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      MODEL_VERSION: "0.1.0"
+      MODEL_VERSION: "2"
+      MAX_LENGTH: "256"
     volumes:
       # The model is data, not code: it is mounted from your folder, never baked into the image.
       - ./models:/app/models:ro
