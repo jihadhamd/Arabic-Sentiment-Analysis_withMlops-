@@ -57,7 +57,7 @@ class TrainConfig:
     max_length: int = MAX_LENGTH
     max_train_samples: int | None = None  # None = use all training rows
     warmup_ratio: float = 0.1
-    weight_decay: float = 0.001
+    weight_decay: float = 0.01
     seed: int = SEED
     evaluate_test: bool = False  # the test set is opened only when we ask for it
 
