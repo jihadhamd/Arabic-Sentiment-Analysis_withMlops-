@@ -49,5 +49,7 @@ testpaths = ["tests"]
 
 [dependency-groups]
 dev = [
+    "pre-commit",
+    "pytest",
     "ruff>=0.17.0",
 ]
