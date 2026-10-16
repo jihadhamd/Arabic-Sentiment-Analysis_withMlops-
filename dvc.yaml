@@ -1,0 +1,34 @@
+
+stages:
+  prepare:
+    cmd: uv run python -m src.data
+    deps:
+      - src/data.py
+      - src/config.py
+      - data/raw/ar_reviews_100k.tsv
+    outs:
+
+      - data/processed
+
+  train:
+    cmd: >-
+      uv run python -m src.train
+      --run-name dvc-training
+      --base-model aubmindlab/bert-base-arabertv02
+      --lr 5e-5
+      --batch-size 16
+      --max-length 256
+      --weight-decay 0.01
+      --epochs 2
+      --seed 42
+      --data-dir data/processed
+      --output-dir models/dvc-training
+    deps:
+      - src/train.py
+      - src/config.py
+      - src/text.py
+      - src/tracking.py
+      - data/processed/train.csv
+      - data/processed/val.csv
+    outs:
+      - models/dvc-training

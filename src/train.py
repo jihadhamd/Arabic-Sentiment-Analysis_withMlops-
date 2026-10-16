@@ -53,11 +53,11 @@ class TrainConfig:
     base_model: str = BASE_MODEL
     epochs: int = 2
     batch_size: int = 16
-    lr: float = 2e-5
+    lr: float = 5e-5
     max_length: int = MAX_LENGTH
     max_train_samples: int | None = None  # None = use all training rows
     warmup_ratio: float = 0.1
-    weight_decay: float = 0.01
+    weight_decay: float = 0.001
     seed: int = SEED
     evaluate_test: bool = False  # the test set is opened only when we ask for it
 

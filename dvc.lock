@@ -1,0 +1,59 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: uv run python -m src.data
+    deps:
+    - path: data/raw/ar_reviews_100k.tsv
+      hash: md5
+      md5: 31f3045f2cd655d1edf534c3648d0dec
+      size: 54358833
+    - path: src/config.py
+      hash: md5
+      md5: 02b1813a0728cb48c4ca651f93e897be
+      size: 1087
+    - path: src/data.py
+      hash: md5
+      md5: 1d0191542224a834e8ad4e37149a10b0
+      size: 2502
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: 57f8911169973604bff91971953f8aa8.dir
+      size: 54358855
+      nfiles: 3
+  train:
+    cmd: uv run python -m src.train --run-name dvc-training --base-model
+      aubmindlab/bert-base-arabertv02 --lr 5e-5 --batch-size 16 --max-length 256
+      --weight-decay 0.01 --epochs 2 --seed 42 --data-dir data/processed
+      --output-dir models/dvc-training
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: ca4a207f5608688a842b68f9c7626891
+      size: 43368557
+    - path: data/processed/val.csv
+      hash: md5
+      md5: d88deb96bd4292198b82b59f39020b4e
+      size: 5539879
+    - path: src/config.py
+      hash: md5
+      md5: 02b1813a0728cb48c4ca651f93e897be
+      size: 1087
+    - path: src/text.py
+      hash: md5
+      md5: 7b08399973cbebc0a9332a2891516ca1
+      size: 566
+    - path: src/tracking.py
+      hash: md5
+      md5: f25921027a6d75149fe416399532de96
+      size: 2670
+    - path: src/train.py
+      hash: md5
+      md5: 00da6687d6cd6eb1a83a0c4585a75f86
+      size: 13120
+    outs:
+    - path: models/dvc-training
+      hash: md5
+      md5: 994b091c140fbdb3f093518d04220e38.dir
+      size: 542585190
+      nfiles: 5
