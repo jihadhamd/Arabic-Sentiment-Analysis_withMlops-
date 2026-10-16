@@ -16,10 +16,15 @@ dependencies = [
     "uvicorn[standard]>=0.29",
     "pydantic>=2.6",
     "arabert",
+    "mlflow>=3.17.1",
+    "pandas>=2.3.3",
+    "matplotlib>=3.10.9",
+    "seaborn>=0.13.2",
+    "dvc-s3>=3.3.0",
 ]
 
 [project.optional-dependencies]
-train = ["pandas", "scikit-learn"]
+train = ["pandas", "scikit-learn", "mlflow"]
 eda = ["matplotlib", "jupyter", "ipykernel"]
 data = ["kaggle"]
 dev = ["pytest", "httpx", "black", "ruff", "pre-commit"]

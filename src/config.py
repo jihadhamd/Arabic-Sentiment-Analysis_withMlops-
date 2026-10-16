@@ -15,6 +15,7 @@ BASE_MODEL: str = os.getenv("BASE_MODEL", "aubmindlab/bert-base-arabertv02")
 MAX_LENGTH: int = int(os.getenv("MAX_LENGTH", "128"))
 MODEL_VERSION: str = os.getenv("MODEL_VERSION", "0.1.0")
 SEED: int = 42
+EXPERIMENT_NAME: str = "arabic-sentiment"
 
 # --- Paths (relative to the project root: run commands from there) -------
 RAW_DATA_PATH = Path("data/raw/ar_reviews_100k.tsv")

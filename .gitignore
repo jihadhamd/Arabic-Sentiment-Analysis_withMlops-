@@ -6,12 +6,15 @@ __pycache__/
 .ruff_cache/
 
 # Large files: DVC will track these later (Module 2), never plain git
-data/raw/
+data/raw/*
+!data/raw/*.dvc
 data/processed/
 models/
 
 # Experiment tracking output
 mlruns/
+mlflow.db
+mlartifacts/
 
 # Secrets must never reach GitHub
 .env
