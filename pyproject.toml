@@ -1,3 +1,4 @@
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
@@ -27,7 +28,15 @@ dependencies = [
 train = ["pandas", "scikit-learn", "mlflow"]
 eda = ["matplotlib", "jupyter", "ipykernel"]
 data = ["kaggle"]
-dev = ["pytest", "httpx", "black", "ruff", "pre-commit"]
+
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "pytest",
+    "httpx",
+    "black",
+    "ruff>=0.17.0",
+]
 
 [tool.setuptools]
 packages = ["src"]
@@ -46,10 +55,3 @@ ignore = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-
-[dependency-groups]
-dev = [
-    "pre-commit",
-    "pytest",
-    "ruff>=0.17.0",
-]
