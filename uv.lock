@@ -384,14 +384,6 @@ data = [
     { name = "kaggle", version = "1.7.4.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "kaggle", version = "2.2.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
-dev = [
-    { name = "black" },
-    { name = "httpx" },
-    { name = "pre-commit", version = "4.6.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "pre-commit", version = "4.7.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
 eda = [
     { name = "ipykernel", version = "7.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ipykernel", version = "7.4.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -409,6 +401,8 @@ train = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "black" },
+    { name = "httpx" },
     { name = "pre-commit", version = "4.6.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pre-commit", version = "4.7.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pytest" },
@@ -418,10 +412,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "arabert" },
-    { name = "black", marker = "extra == 'dev'" },
     { name = "dvc-s3", specifier = ">=3.3.0" },
     { name = "fastapi", specifier = ">=0.110" },
-    { name = "httpx", marker = "extra == 'dev'" },
     { name = "ipykernel", marker = "extra == 'eda'" },
     { name = "jupyter", marker = "extra == 'eda'" },
     { name = "kaggle", marker = "extra == 'data'" },
@@ -432,20 +424,19 @@ requires-dist = [
     { name = "numpy" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pandas", marker = "extra == 'train'" },
-    { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "pydantic", specifier = ">=2.6" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "ruff", marker = "extra == 'dev'" },
     { name = "scikit-learn", marker = "extra == 'train'" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "torch", specifier = ">=2.2" },
     { name = "transformers", specifier = ">=4.40" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.29" },
 ]
-provides-extras = ["train", "eda", "data", "dev"]
+provides-extras = ["train", "eda", "data"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "black" },
+    { name = "httpx" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "ruff", specifier = ">=0.17.0" },
