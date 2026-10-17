@@ -1,0 +1,37 @@
+name: Model Quality Gate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality-check:
+    name: Check Saved Model Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Download saved model metrics from DVC
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_USERNAME }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          uvx --from "dvc[s3]" dvc pull models/dvc-training
+
+      - name: Run model quality gate
+        run: |
+          python scripts/check_model_quality.py \
+            --metrics models/dvc-training/metrics.json \
+            --baseline reports/model_quality_baseline.json
