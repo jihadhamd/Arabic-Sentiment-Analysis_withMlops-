@@ -1,3 +1,4 @@
+
 name: Model Quality Gate
 
 on:
@@ -28,7 +29,7 @@ jobs:
 
       - name: Download saved model metrics from DVC
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_USERNAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_TOKEN }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
           uvx --from "dvc[s3]" dvc pull models/dvc-training
