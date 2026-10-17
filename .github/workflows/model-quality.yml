@@ -2,6 +2,9 @@ name: Model Quality Gate
 
 on:
   workflow_dispatch:
+    push:
+    branches:
+      - ci/cd_workflow
 
 permissions:
   contents: read
