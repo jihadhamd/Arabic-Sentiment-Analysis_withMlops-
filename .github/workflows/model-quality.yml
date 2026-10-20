@@ -1,4 +1,4 @@
-name: Model Quality Gate
+name: Arabic Sentiment Analysis CI
 
 on:
   workflow_call:
