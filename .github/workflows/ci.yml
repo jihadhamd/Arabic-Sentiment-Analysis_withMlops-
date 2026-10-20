@@ -96,6 +96,16 @@ jobs:
             -e MAX_LENGTH=256 \
             -v "$GITHUB_WORKSPACE/models:/app/models:ro" \
             arabic-sentiment:ci
+      - name: Dump container logs immediately
+        if: always()
+        run: |
+         sleep 30
+         echo "===== ps ====="
+         docker ps -a || true
+         echo "===== logs ====="
+         docker logs arabic-sentiment-smoke 2>&1 || true
+         echo "===== state ====="
+         docker inspect arabic-sentiment-smoke --format='{{json .State}}' || true
 
       - name: Wait for API and test prediction
         if: >-
