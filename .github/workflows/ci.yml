@@ -1,4 +1,5 @@
 
+
 name: Arabic Sentiment Analysis CI
 
 on:
@@ -47,8 +48,8 @@ jobs:
         if: >-
           github.event_name == 'push' ||
           (
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name == github.repository
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository
           )
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_TOKEN }}
@@ -60,7 +61,12 @@ jobs:
         run: docker build -t arabic-sentiment:ci .
 
       - name: Start container with trained model
-        if: github.event_name == 'push'
+        if: >-
+          github.event_name == 'push' ||
+          (
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
         run: |
           docker run -d \
             --name arabic-sentiment-smoke \
@@ -72,7 +78,12 @@ jobs:
             arabic-sentiment:ci
 
       - name: Wait for API and test prediction
-        if: github.event_name == 'push'
+        if: >-
+          github.event_name == 'push' ||
+          (
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+          )
         run: |
           python - <<'PY'
           import json
@@ -91,8 +102,10 @@ jobs:
                       health = json.load(response)
                       assert response.status == 200
                       assert health["status"] == "healthy"
+
                   print("Health check passed.")
                   break
+
               except (
                   urllib.error.URLError,
                   TimeoutError,
@@ -100,7 +113,9 @@ jobs:
               ):
                   time.sleep(5)
           else:
-              raise RuntimeError("API did not become healthy within 4 minutes.")
+              raise RuntimeError(
+                  "API did not become healthy within 4 minutes."
+              )
 
           payload = json.dumps(
               {"text": "المنتج ممتاز"}
@@ -129,7 +144,14 @@ jobs:
           PY
 
       - name: Print container logs on failure
-        if: failure() && github.event_name == 'push'
+        if: >-
+          failure() && (
+            github.event_name == 'push' ||
+            (
+              github.event_name == 'pull_request' &&
+              github.event.pull_request.head.repo.full_name == github.repository
+            )
+          )
         run: |
           if docker container inspect arabic-sentiment-smoke >/dev/null 2>&1; then
             docker logs arabic-sentiment-smoke
