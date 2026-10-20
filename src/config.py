@@ -12,8 +12,8 @@ ID2LABEL: dict[int, str] = {i: label for label, i in LABEL2ID.items()}
 
 # --- Model --------------------------------------------------------------
 BASE_MODEL: str = os.getenv("BASE_MODEL", "aubmindlab/bert-base-arabertv02")
-MAX_LENGTH: int = int(os.getenv("MAX_LENGTH", "128"))
-MODEL_VERSION: str = os.getenv("MODEL_VERSION", "0.1.0")
+MAX_LENGTH: int = int(os.getenv("MAX_LENGTH", "256"))
+MODEL_VERSION: str = os.getenv("MODEL_VERSION", "2")
 SEED: int = 42
 EXPERIMENT_NAME: str = "arabic-sentiment"
 
