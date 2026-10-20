@@ -44,7 +44,12 @@ jobs:
         run: uv run pytest -v
 
       - name: Download trained model from DVC
-        if: github.event_name == 'push'
+        if: >-
+          github.event_name == 'push' ||
+          (
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+          )
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_TOKEN }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_TOKEN }}
