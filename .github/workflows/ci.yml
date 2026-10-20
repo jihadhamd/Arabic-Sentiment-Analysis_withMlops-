@@ -143,14 +143,26 @@ jobs:
           print(json.dumps(prediction, ensure_ascii=False, indent=2))
           PY
 
-      - name: Diagnose container on failure
-        if: failure()
+
+      - name: Diagnose API startup
         run: |
+          echo "Waiting 30 seconds for application startup..."
+          sleep 30
+
+          echo "===== CONTAINER STATUS ====="
           docker ps -a
+
+          echo "===== CONTAINER STATE ====="
           docker inspect arabic-sentiment-smoke \
-            --format='Status={{.State.Status}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}} Error={{.State.Error}}' \
-            || true
-          docker logs --timestamps arabic-sentiment-smoke 2>&1 || true
+            --format='Status={{.State.Status}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}} Error={{.State.Error}} Health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}'
+
+          echo "===== CONTAINER LOGS ====="
+          docker logs --timestamps arabic-sentiment-smoke 2>&1
+
+          echo "===== HEALTH REQUEST ====="
+          curl -v --max-time 10 http://127.0.0.1:8000/health
+
+
 
       - name: Remove smoke-test container
         if: always()
