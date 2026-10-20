@@ -56,6 +56,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
           uvx --from "dvc[s3]==3.67.1" dvc pull models/dvc-training
+      - name: Verify model files present
+        run: |
+         ls -la models/ || true
+         ls -la models/dvc-training/ || true
+         du -sh models/ || true
 
       - name: Build Docker image
         run: docker build -t arabic-sentiment:ci .
