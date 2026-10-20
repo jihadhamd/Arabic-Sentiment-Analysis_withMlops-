@@ -143,6 +143,14 @@ jobs:
           print(json.dumps(prediction, ensure_ascii=False, indent=2))
           PY
 
+      - name: Snapshot logs (before smoke test can restart it)
+        if: always()
+        run: |
+          sleep 5
+          docker ps -a || true
+          docker inspect arabic-sentiment-smoke --format='RestartCount={{.RestartCount}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}}' || true
+          docker logs arabic-sentiment-smoke 2>&1 || echo "(no logs)"
+
 
 
 
