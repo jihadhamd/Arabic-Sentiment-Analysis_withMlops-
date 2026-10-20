@@ -143,19 +143,14 @@ jobs:
           print(json.dumps(prediction, ensure_ascii=False, indent=2))
           PY
 
-      - name: Print container logs on failure
-        if: >-
-          failure() && (
-            github.event_name == 'push' ||
-            (
-              github.event_name == 'pull_request' &&
-              github.event.pull_request.head.repo.full_name == github.repository
-            )
-          )
+      - name: Diagnose container on failure
+        if: failure()
         run: |
-          if docker container inspect arabic-sentiment-smoke >/dev/null 2>&1; then
-            docker logs arabic-sentiment-smoke
-          fi
+          docker ps -a
+          docker inspect arabic-sentiment-smoke \
+            --format='Status={{.State.Status}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}} Error={{.State.Error}}' \
+            || true
+          docker logs --timestamps arabic-sentiment-smoke 2>&1 || true
 
       - name: Remove smoke-test container
         if: always()
