@@ -24,7 +24,7 @@ while True:
                 raise RuntimeError("unhealthy payload")
         print("Health check passed.")
         break
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, RuntimeError) as e:
+    except (OSError, json.JSONDecodeError, RuntimeError) as e:
         if time.monotonic() >= deadline:
             fail(f"API not healthy within 4 min: {e}")
         time.sleep(5)
