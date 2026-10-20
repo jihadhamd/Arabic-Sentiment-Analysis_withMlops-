@@ -1,5 +1,3 @@
-
-
 name: Arabic Sentiment Analysis CI
 
 on:
@@ -14,11 +12,21 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-and-docker:
     name: Lint, Test, and Docker Smoke Test
     runs-on: ubuntu-latest
     timeout-minutes: 40
+
+    env:
+      SHOULD_RUN_SMOKE: >-
+        ${{ github.event_name == 'push' ||
+            (github.event_name == 'pull_request' &&
+             github.event.pull_request.head.repo.full_name == github.repository) }}
 
     steps:
       - name: Checkout repository
@@ -44,148 +52,47 @@ jobs:
       - name: Run tests
         run: uv run pytest -v
 
+      # Must run BEFORE docker build so the model is baked into the image.
       - name: Download trained model from DVC
-        if: >-
-          github.event_name == 'push' ||
-          (
-            github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository
-          )
+        if: env.SHOULD_RUN_SMOKE == 'true'
         env:
+          # DagsHub uses a single token for both S3 credentials.
           AWS_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_TOKEN }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_TOKEN }}
-        run: |
-          uvx --from "dvc[s3]==3.67.1" dvc pull models/dvc-training
+        run: uvx --from "dvc[s3]==3.67.1" dvc pull models/dvc-training
+
       - name: Verify model files present
+        if: env.SHOULD_RUN_SMOKE == 'true'
         run: |
-         ls -la models/ || true
-         ls -la models/dvc-training/ || true
-         du -sh models/ || true
-
-
-      - name: Test model load on host
-        if: always()
-        run: |
-         uv run python -c "
-         import os, time
-         os.environ['HF_HUB_OFFLINE']='1'
-         os.environ['MODEL_DIR']='models/dvc-training'
-         t=time.time()
-         from src.model import SentimentClassifier
-         c = SentimentClassifier().load()
-         print('loaded in', time.time()-t, 's')
-         print(c.predict(['المنتج ممتاز']))
-         "
+          ls -la models/dvc-training/
+          test -n "$(ls -A models/dvc-training)" || { echo "model dir empty"; exit 1; }
 
       - name: Build Docker image
         run: docker build -t arabic-sentiment:ci .
 
-      - name: Start container with trained model
-        if: >-
-          github.event_name == 'push' ||
-          (
-            github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository
-          )
+      - name: Start container
+        if: env.SHOULD_RUN_SMOKE == 'true'
         run: |
           docker run -d \
             --name arabic-sentiment-smoke \
             -p 8000:8000 \
-            -e MODEL_DIR=/app/models/dvc-training \
-            -e MODEL_VERSION=2 \
-            -e MAX_LENGTH=256 \
-            -v "$GITHUB_WORKSPACE/models:/app/models:ro" \
             arabic-sentiment:ci
-      - name: Dump container logs immediately
-        if: always()
-        run: |
-         sleep 30
-         echo "===== ps ====="
-         docker ps -a || true
-         echo "===== logs ====="
-         docker logs arabic-sentiment-smoke 2>&1 || true
-         echo "===== state ====="
-         docker inspect arabic-sentiment-smoke --format='{{json .State}}' || true
 
       - name: Wait for API and test prediction
-        if: >-
-          github.event_name == 'push' ||
-          (
-            github.event_name == 'pull_request' &&
-            github.event.pull_request.head.repo.full_name == github.repository
-          )
+        if: env.SHOULD_RUN_SMOKE == 'true'
+        run: python scripts/smoke_test.py
+        env:
+          BASE_URL: http://127.0.0.1:8000
+          EXPECTED_MODEL_VERSION: "2"
+
+      - name: Diagnose on failure
+        if: failure() && env.SHOULD_RUN_SMOKE == 'true'
         run: |
-          python - <<'PY'
-          import json
-          import time
-          import urllib.error
-          import urllib.request
-
-          base_url = "http://127.0.0.1:8000"
-          deadline = time.monotonic() + 240
-
-          while time.monotonic() < deadline:
-              try:
-                  with urllib.request.urlopen(
-                      f"{base_url}/health", timeout=5
-                  ) as response:
-                      health = json.load(response)
-                      assert response.status == 200
-                      assert health["status"] == "healthy"
-
-                  print("Health check passed.")
-                  break
-
-              except (
-                  urllib.error.URLError,
-                  TimeoutError,
-                  json.JSONDecodeError,
-              ):
-                  time.sleep(5)
-          else:
-              raise RuntimeError(
-                  "API did not become healthy within 4 minutes."
-              )
-
-          payload = json.dumps(
-              {"text": "المنتج ممتاز"}
-          ).encode("utf-8")
-
-          request = urllib.request.Request(
-              f"{base_url}/predict",
-              data=payload,
-              headers={"Content-Type": "application/json"},
-              method="POST",
-          )
-
-          with urllib.request.urlopen(request, timeout=30) as response:
-              assert response.status == 200
-              prediction = json.load(response)
-
-          assert prediction["label"] in {
-              "negative", "mixed", "positive"
-          }, prediction
-          assert isinstance(prediction["confidence"], (int, float))
-          assert 0 <= prediction["confidence"] <= 1
-          assert prediction["model_version"] == "2"
-
-          print("Prediction smoke test passed.")
-          print(json.dumps(prediction, ensure_ascii=False, indent=2))
-          PY
-
-      - name: Snapshot logs (before smoke test can restart it)
-        if: always()
-        run: |
-          sleep 5
           docker ps -a || true
-          docker inspect arabic-sentiment-smoke --format='RestartCount={{.RestartCount}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}}' || true
-          docker logs arabic-sentiment-smoke 2>&1 || echo "(no logs)"
-
-
-
-
-
-
+          docker inspect arabic-sentiment-smoke \
+            --format='Status={{.State.Status}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}} Error={{.State.Error}} RestartCount={{.RestartCount}}' \
+            || true
+          docker logs --timestamps arabic-sentiment-smoke 2>&1 || true
 
       - name: Remove smoke-test container
         if: always()
