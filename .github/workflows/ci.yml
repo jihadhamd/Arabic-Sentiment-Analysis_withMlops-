@@ -3,17 +3,21 @@ name: Arabic Sentiment Analysis CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - ci/cd_workflow
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
 
 jobs:
-  test:
-    name: Lint and Test
+  test-and-docker:
+    name: Lint, Test, and Docker Smoke Test
     runs-on: ubuntu-latest
+    timeout-minutes: 40
 
     steps:
       - name: Checkout repository
@@ -33,16 +37,99 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --group dev
 
-      - name: Verify installed tools
-        run: |
-          uv --version
-          uv pip list
-          uv run python -c "import pytest; print('pytest version:', pytest.__version__)"
-          uv run which pytest
-
       - name: Lint with Ruff
         run: uv run ruff check .
 
       - name: Run tests
         run: uv run pytest -v
-##
+
+      - name: Download trained model from DVC
+        if: github.event_name == 'push'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_TOKEN }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          uvx --from "dvc[s3]==3.67.1" dvc pull models/dvc-training
+
+      - name: Build Docker image
+        run: docker build -t arabic-sentiment:ci .
+
+      - name: Start container with trained model
+        if: github.event_name == 'push'
+        run: |
+          docker run -d \
+            --name arabic-sentiment-smoke \
+            -p 8000:8000 \
+            -e MODEL_DIR=/app/models/dvc-training \
+            -e MODEL_VERSION=2 \
+            -e MAX_LENGTH=256 \
+            -v "$GITHUB_WORKSPACE/models:/app/models:ro" \
+            arabic-sentiment:ci
+
+      - name: Wait for API and test prediction
+        if: github.event_name == 'push'
+        run: |
+          python - <<'PY'
+          import json
+          import time
+          import urllib.error
+          import urllib.request
+
+          base_url = "http://127.0.0.1:8000"
+          deadline = time.monotonic() + 240
+
+          while time.monotonic() < deadline:
+              try:
+                  with urllib.request.urlopen(
+                      f"{base_url}/health", timeout=5
+                  ) as response:
+                      health = json.load(response)
+                      assert response.status == 200
+                      assert health["status"] == "healthy"
+                  print("Health check passed.")
+                  break
+              except (
+                  urllib.error.URLError,
+                  TimeoutError,
+                  json.JSONDecodeError,
+              ):
+                  time.sleep(5)
+          else:
+              raise RuntimeError("API did not become healthy within 4 minutes.")
+
+          payload = json.dumps(
+              {"text": "المنتج ممتاز"}
+          ).encode("utf-8")
+
+          request = urllib.request.Request(
+              f"{base_url}/predict",
+              data=payload,
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+
+          with urllib.request.urlopen(request, timeout=30) as response:
+              assert response.status == 200
+              prediction = json.load(response)
+
+          assert prediction["label"] in {
+              "negative", "mixed", "positive"
+          }, prediction
+          assert isinstance(prediction["confidence"], (int, float))
+          assert 0 <= prediction["confidence"] <= 1
+          assert prediction["model_version"] == "2"
+
+          print("Prediction smoke test passed.")
+          print(json.dumps(prediction, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Print container logs on failure
+        if: failure() && github.event_name == 'push'
+        run: |
+          if docker container inspect arabic-sentiment-smoke >/dev/null 2>&1; then
+            docker logs arabic-sentiment-smoke
+          fi
+
+      - name: Remove smoke-test container
+        if: always()
+        run: docker rm -f arabic-sentiment-smoke || true
