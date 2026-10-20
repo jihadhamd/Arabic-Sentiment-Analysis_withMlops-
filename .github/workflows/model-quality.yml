@@ -1,11 +1,17 @@
-name: Arabic Sentiment Analysis CI
+name: Quality Check for Saved Model
 
 on:
   workflow_call:
     secrets:
       DAGSHUB_TOKEN:
         required: true
+
   workflow_dispatch:
+
+  push:
+    branches:
+      - ci/cd_workflow
+      - main
 
 permissions:
   contents: read
