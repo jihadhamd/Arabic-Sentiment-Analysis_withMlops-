@@ -61,18 +61,21 @@ jobs:
          ls -la models/ || true
          ls -la models/dvc-training/ || true
          du -sh models/ || true
-      - name: Test model load timing
+
+
+      - name: Test model load on host
         if: always()
         run: |
-         docker exec arabic-sentiment-smoke python -c "
+         uv run python -c "
          import os, time
          os.environ['HF_HUB_OFFLINE']='1'
+         os.environ['MODEL_DIR']='models/dvc-training'
          t=time.time()
          from src.model import SentimentClassifier
          c = SentimentClassifier().load()
          print('loaded in', time.time()-t, 's')
          print(c.predict(['المنتج ممتاز']))
-         " || true
+         "
 
       - name: Build Docker image
         run: docker build -t arabic-sentiment:ci .
