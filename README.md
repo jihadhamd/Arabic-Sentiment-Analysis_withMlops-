@@ -1,17 +1,17 @@
-# Arabic-Sentiment-Analysis_withMlops-
-
+# Arabic Sentiment Analysis (AraBERT)
 
 Classifies Arabic reviews as **negative**, **mixed** or **positive**. A fine-tuned AraBERT model
 served by a FastAPI service and packaged with Docker.
 
 > **Status: Modules 1-2 complete** (package, API, Docker, MLflow tracking, DVC pipeline,
 > CI/CD). Best validation macro-F1 is 0.7573 (run `len256-wd0001`, registered as
-> `ArabicSentiment` / `Production`). The API in this repo still loads whatever model is placed in
+> `ArabicSentiment` / `Production`). The API loads whatever model is placed in
 > `models/arabert-sentiment/`.
 
 ## Run the service
 
-Requires Docker. The model files are not stored in Git. Run dvc pull to fetch the data and models, or place a trained model in models/arabert-sentiment/ , then:
+Requires Docker. The model files are not stored in Git. Run `dvc pull` to fetch the data and
+models, or place a trained model in `models/arabert-sentiment/`, then:
 
 ```bash
 git clone https://github.com/jihadhamd/Arabic-Sentiment-Analysis_withMlops-.git
@@ -23,7 +23,7 @@ The image is also on Docker Hub (it contains the code but **not** the model, whi
 from `models/`):
 
 ```bash
-docker pull <jihadhamy>/arabic-sentiment:0.1.0
+docker pull jihadhamy/arabic-sentiment:latest
 ```
 
 ## API
@@ -48,7 +48,8 @@ Empty, blank or missing `text` returns **422**. Interactive docs: http://localho
   is opened only with `--evaluate-test`.
 - **Review length:** median 38 AraBERT tokens, 95th percentile 257, 99th percentile 565 (5,000-review
   sample). Share of reviews that fit without truncation: 128 tokens 85.2%, 256 tokens 95.0%,
-  512 tokens 98.7%. AraBERT reads at most 512 tokens. The baseline uses `max_length` 128.
+  512 tokens 98.7%. AraBERT reads at most 512 tokens. The first baseline used `max_length` 128;
+  the best run uses 256.
 - **Short reviews:** 731 reviews (0.73%) have one or two words.
 - **Topics:** the data mixes several kinds of reviews, including hotels and books. A keyword check
   found a similar topic mix in all three classes.
@@ -68,7 +69,6 @@ python -m src.train    # fine-tune; see --help for options
 
 Layout: `src/` (config, text, data, model, train, api, schemas), `tests/`, `notebooks/`.
 Training and serving share one text-cleaning function (`src/text.py`) to avoid train/serve skew.
-
 
 ## Module 2: Experiment Tracking, Data Versioning & CI/CD
 
@@ -112,7 +112,7 @@ Reproducibility check: two runs of the pipeline with the same parameters
 **`CI` workflow:** on pull requests and on pushes to `main`: ruff lint,
 pytest, Docker build and a smoke test. On a push to `main` only, the image
 is tagged with the commit SHA and `latest` and pushed to Docker Hub
-(`<dockerhub-jihadhamy>/arabic-sentiment`).
+(`jihadhamy/arabic-sentiment`).
 
 **Quality gate (`Model quality` workflow):** pulls
 `models/dvc-training/metrics.json` from the DVC remote and runs
@@ -125,11 +125,9 @@ i.e. below about 0.7523.
 Set `MLFLOW_TRACKING_URI`, `MLFLOW_TRACKING_USERNAME` and
 `MLFLOW_TRACKING_PASSWORD` (a DagsHub token) before running training.
 
-
-
 ## Known limitations
 
-- The served model is a placeholder (see the status note above).
+- The Docker image does not contain the model. Run `dvc pull` or mount a model in `models/`.
 - The class balance is artificial. Real traffic will not be balanced, so scores on this data will
   look better than live performance. Drift monitoring is planned for Module 5.
 - "Mixed" is probably a middling or two-sided opinion, which is not the same as "neutral". This is
