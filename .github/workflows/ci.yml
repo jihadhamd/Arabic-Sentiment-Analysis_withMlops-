@@ -1,0 +1,113 @@
+name: Arabic Sentiment Analysis CI
+
+on:
+  push:
+    branches:
+      - ci/cd_workflow
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-docker:
+    name: Lint, Test, and Docker Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    env:
+      SHOULD_RUN_SMOKE: >-
+        ${{ github.event_name == 'push' ||
+            (github.event_name == 'pull_request' &&
+             github.event.pull_request.head.repo.full_name == github.repository) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install dependencies
+        run: uv sync --locked --group dev
+
+      - name: Lint with Ruff
+        run: uv run ruff check .
+
+      - name: Run tests
+        run: uv run pytest -v
+
+      - name: Download trained model from DVC
+        if: env.SHOULD_RUN_SMOKE == 'true'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_TOKEN }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_TOKEN }}
+        run: uvx --from "dvc[s3]==3.67.1" dvc pull models/dvc-training
+
+      - name: Verify model files present
+        if: env.SHOULD_RUN_SMOKE == 'true'
+        run: |
+          ls -la models/dvc-training/
+          test -n "$(ls -A models/dvc-training)" || { echo "model dir empty"; exit 1; }
+
+      - name: Build Docker image
+        run: docker build -t arabic-sentiment:ci .
+
+      - name: Start container
+        if: env.SHOULD_RUN_SMOKE == 'true'
+        run: |
+          docker run -d \
+            --name arabic-sentiment-smoke \
+            -p 8000:8000 \
+            arabic-sentiment:ci
+
+      - name: Wait for API and test prediction
+        if: env.SHOULD_RUN_SMOKE == 'true'
+        run: python scripts/smoke_test.py
+        env:
+          BASE_URL: http://127.0.0.1:8000
+          EXPECTED_MODEL_VERSION: "2"
+
+      - name: Log in to Docker Hub
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Tag and push Docker image
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/arabic-sentiment"
+          docker tag arabic-sentiment:ci "$IMAGE:${GITHUB_SHA}"
+          docker tag arabic-sentiment:ci "$IMAGE:latest"
+          docker push "$IMAGE:${GITHUB_SHA}"
+          docker push "$IMAGE:latest"
+
+      - name: Diagnose on failure
+        if: failure() && env.SHOULD_RUN_SMOKE == 'true'
+        run: |
+          docker ps -a || true
+          docker inspect arabic-sentiment-smoke \
+            --format='Status={{.State.Status}} ExitCode={{.State.ExitCode}} OOMKilled={{.State.OOMKilled}} Error={{.State.Error}} RestartCount={{.RestartCount}}' \
+            || true
+          docker logs --timestamps arabic-sentiment-smoke 2>&1 || true
+
+      - name: Remove smoke-test container
+        if: always()
+        run: docker rm -f arabic-sentiment-smoke || true

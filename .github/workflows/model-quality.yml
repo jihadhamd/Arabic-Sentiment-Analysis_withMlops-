@@ -1,0 +1,51 @@
+name: Quality Check for Saved Model
+
+on:
+  workflow_call:
+    secrets:
+      DAGSHUB_TOKEN:
+        required: true
+
+  workflow_dispatch:
+
+  push:
+    branches:
+      - ci/cd_workflow
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  quality-check:
+    name: Check Saved Model Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # Replace with the output of `dvc --version` on your machine. Keep it pinned, so a new
+      # DVC release cannot break CI on a day when nothing in the repo changed.
+      DVC_VERSION: "3.67.1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Download only the saved metrics from DVC
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DAGSHUB_TOKEN }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DAGSHUB_TOKEN }}
+        run: uvx --from "dvc[s3]==${DVC_VERSION}" dvc pull models/dvc-training/metrics.json
+
+      - name: Fail if f1_macro dropped below the baseline
+        run: |
+          python scripts/check_model_quality.py \
+            --metrics models/dvc-training/metrics.json \
+            --baseline reports/model_quality_baseline.json

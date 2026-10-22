@@ -1,0 +1,7 @@
+{
+  "metric": "val_f1_macro",
+  "baseline": 0.7572571603697359,
+  "max_allowed_drop": 0.005,
+  "reference_experiment": "len256-wd0001",
+  "candidate_artifact": "models/dvc-training/metrics.json"
+}
