@@ -91,7 +91,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Tag and push Docker image
-        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: success() && github.event_name == 'push'
         run: |
           IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/arabic-sentiment"
           docker tag arabic-sentiment:ci "$IMAGE:${GITHUB_SHA}"
