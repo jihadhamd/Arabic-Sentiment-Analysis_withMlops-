@@ -18,3 +18,8 @@ mlartifacts/
 
 # Secrets must never reach GitHub
 .env
+#bentoml depugging files
+bento.log
+bento_debug.log
+gpu.log
+gpu_100u.log

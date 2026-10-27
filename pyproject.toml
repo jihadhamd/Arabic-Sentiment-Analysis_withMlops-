@@ -39,6 +39,9 @@ dev = [
     "ruff>=0.17.0",
     "locust>=2.46.0",
 ]
+serve = [
+    "bentoml>=1.4.39",
+]
 trt = [
     "onnx>=1.23.2",
     "onnxruntime-gpu>=1.23.2",
