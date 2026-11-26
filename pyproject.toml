@@ -43,8 +43,7 @@ serve = [
     "bentoml>=1.4.39",
 ]
 trt = [
-    "onnx>=1.23.2",
-    "onnxruntime>=1.23.2",
+    "nvidia-modelopt[onnx]>=0.30",
     "onnxscript>=0.7.2",
     "tensorrt>=11.4.0.106",
 ]
