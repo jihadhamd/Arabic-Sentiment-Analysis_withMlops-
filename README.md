@@ -136,3 +136,109 @@ Set `MLFLOW_TRACKING_URI`, `MLFLOW_TRACKING_USERNAME` and
   label, and that label means nothing.
 - Reviews longer than `max_length` tokens are truncated.
 - The Docker image uses CPU-only PyTorch. GPU serving comes in Module 3.
+
+## Model Serving & Optimization (Module 3)
+
+The service was deployed three ways and load-tested with Locust, using the same
+locustfile, real test-set reviews, and identical user/ramp-up/duration settings
+across all runs (stats reset after ramp-up, 3-minute measurement window).
+
+### Deployments
+1. **FastAPI** (Module 1 baseline) — single uvicorn worker, PyTorch FP32.
+2. **BentoML + PyTorch** — adaptive batching (`batchable=True`), PyTorch FP32.
+3. **BentoML + TensorRT FP16** — same batching service, model replaced with a
+   TensorRT FP16 engine built from the PyTorch model via ONNX.
+
+### TensorRT build pipeline
+PyTorch → ONNX (`scripts/export_onnx.py`) → FP16 conversion via NVIDIA ModelOpt
+AutoCast (`scripts/autocast_fp16.py`) → FP16 engine (`scripts/build_engine.py`,
+TensorRT Python API — `trtexec` / the old `BuilderFlag.FP16` are not available
+in TensorRT 11, which is why precision is set before the build, not during it).
+
+Built with: TensorRT 11.4.0.106, CUDA 13.0, NVIDIA RTX 4050 (WSL2). The engine
+file is GPU/driver/version-specific and is **not committed**; only the build
+scripts are. Rebuild locally with the commands above.
+
+### Correctness check (`scripts/check_trt_engine.py`)
+Compared against PyTorch on the full 10,000-row test set:
+
+| | PyTorch (FP32) | TensorRT (FP16) |
+|---|---|---|
+| Accuracy | 74.45% | 74.41% |
+| Agreement with PyTorch | — | 99.96% |
+
+### Load test results (`/predict`, p95 latency)
+
+| Users | FastAPI | BentoML + PyTorch | BentoML + TensorRT |
+|---|---|---|---|
+| 50  | 530 ms | 100 ms | **74 ms** |
+| 100 | 1.9 s  | 250 ms | **74 ms** |
+| 1000* | 29 s (0 fails) | 1.9 s (71% failed) | 2.8 s (74% failed) |
+
+\* At 1000 concurrent users all three services exceed the capacity of a single
+RTX 4050. FastAPI queues every request (high latency, 0 failures); both
+BentoML services reject excess requests once their queue estimate exceeds
+`max_latency_ms` (HTTP 503). The small gap between 71% and 74% failed is not a
+meaningful difference at this overload level — see reports below. The valid,
+repeatable comparison is at 50/100 users.
+
+**Result:** TensorRT gives the lowest, most stable p95 at both tested load
+levels (2.3–3.4x lower than BentoML+PyTorch, 7–26x lower than FastAPI), with
+negligible accuracy loss (-0.04 points) and 99.96% prediction agreement.
+
+Full reports: `reports/locust_fastapi.html`, `reports/locust_bento_50u.html`,
+`reports/locust_bento_100u.html`, `reports/locust_trt.html` (and `_100u`/`_1000u`
+variants for the extended runs).
+
+## Model Serving & Optimization (Module 3)
+
+The service was deployed three ways and load-tested with Locust, using the same
+locustfile, real test-set reviews, and identical user/ramp-up/duration settings
+across all runs (stats reset after ramp-up, 3-minute measurement window).
+
+### Deployments
+1. **FastAPI** (Module 1 baseline) — single uvicorn worker, PyTorch FP32.
+2. **BentoML + PyTorch** — adaptive batching (`batchable=True`), PyTorch FP32.
+3. **BentoML + TensorRT FP16** — same batching service, model replaced with a
+   TensorRT FP16 engine built from the PyTorch model via ONNX.
+
+### TensorRT build pipeline
+PyTorch → ONNX (`scripts/export_onnx.py`) → FP16 conversion via NVIDIA ModelOpt
+AutoCast (`scripts/autocast_fp16.py`) → FP16 engine (`scripts/build_engine.py`,
+TensorRT Python API — `trtexec` / the old `BuilderFlag.FP16` are not available
+in TensorRT 11, which is why precision is set before the build, not during it).
+
+Built with: TensorRT 11.4.0.106, CUDA 13.0, NVIDIA RTX 4050 (WSL2). The engine
+file is GPU/driver/version-specific and is **not committed**; only the build
+scripts are. Rebuild locally with the commands above.
+
+### Correctness check (`scripts/check_trt_engine.py`)
+Compared against PyTorch on the full 10,000-row test set:
+
+| | PyTorch (FP32) | TensorRT (FP16) |
+|---|---|---|
+| Accuracy | 74.45% | 74.41% |
+| Agreement with PyTorch | — | 99.96% |
+
+### Load test results (`/predict`, p95 latency)
+
+| Users | FastAPI | BentoML + PyTorch | BentoML + TensorRT |
+|---|---|---|---|
+| 50  | 530 ms | 100 ms | **74 ms** |
+| 100 | 1.9 s  | 250 ms | **74 ms** |
+| 1000* | 29 s (0 fails) | 1.9 s (71% failed) | 2.8 s (74% failed) |
+
+\* At 1000 concurrent users all three services exceed the capacity of a single
+RTX 4050. FastAPI queues every request (high latency, 0 failures); both
+BentoML services reject excess requests once their queue estimate exceeds
+`max_latency_ms` (HTTP 503). The small gap between 71% and 74% failed is not a
+meaningful difference at this overload level — see reports below. The valid,
+repeatable comparison is at 50/100 users.
+
+**Result:** TensorRT gives the lowest, most stable p95 at both tested load
+levels (2.3–3.4x lower than BentoML+PyTorch, 7–26x lower than FastAPI), with
+negligible accuracy loss (-0.04 points) and 99.96% prediction agreement.
+
+Full reports: `reports/locust_fastapi.html`, `reports/locust_bento_50u.html`,
+`reports/locust_bento_100u.html`, `reports/locust_trt.html` (and `_100u`/`_1000u`
+variants for the extended runs).

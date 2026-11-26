@@ -22,6 +22,7 @@ dependencies = [
     "matplotlib>=3.10.9",
     "seaborn>=0.13.2",
     "dvc-s3>=3.3.0",
+    "bentoml>=1.4.39",
 ]
 
 [project.optional-dependencies]
@@ -36,6 +37,15 @@ dev = [
     "httpx",
     "black",
     "ruff>=0.17.0",
+    "locust>=2.46.0",
+]
+serve = [
+    "bentoml>=1.4.39",
+]
+trt = [
+    "nvidia-modelopt[onnx]>=0.30",
+    "onnxscript>=0.7.2",
+    "tensorrt>=11.4.0.106",
 ]
 
 [tool.setuptools]
